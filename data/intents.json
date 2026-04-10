@@ -1,0 +1,87 @@
+{
+  "intents": [
+    {
+      "tag": "salom",
+      "patterns": ["Salom", "Assalomu alaykum", "Hayy", "Hola", "Hi", "Hey"],
+      "responses": ["Assalomu alaykum!", "Salom! Qanday yordam bera olaman?"]
+    },
+    {
+      "tag": "xayr",
+      "patterns": ["Xayr", "Ko'rishguncha", "Hayr", "Bye", "Goodbye", "Chao"],
+      "responses": ["Xayr!", "Ko'rishguncha, sog' bo'ling!"]
+    },
+    {
+      "tag": "holsurish",
+      "patterns": [
+        "Qalaysiz",
+        "Yaxshimisiz",
+        "Ahvolingiz qanday",
+        "Qandaysiz",
+        "How are you"
+      ],
+      "responses": ["Yaxshi, rahmat! Siz-chi?", "Juda sog'-salom, tashakkur!"]
+    },
+    {
+      "tag": "isim",
+      "patterns": [
+        "Ismingiz nima",
+        "Siz kimsiz",
+        "Nomi nima",
+        "Isming nima",
+        "Sen kimsiz"
+      ],
+      "responses": ["Men bir chatbotman!", "Mening ismim ChatBot."]
+    },
+    {
+      "tag": "yaxshi",
+      "patterns": [
+        "Yaxshi",
+        "Zo'r",
+        "Ajoyib",
+        "Hammasi yaxshi",
+        "Super",
+        "Sof"
+      ],
+      "responses": ["Juda soz!", "Barakalla!"]
+    },
+    {
+      "tag": "imkoniyatlar",
+      "patterns": [
+        "Sen nimalar qila olasan",
+        "Qanday yordam bera olasan",
+        "Nima qila olasan",
+        "Imkoniyatlaring nima"
+      ],
+      "responses": [
+        "Men savollarga javob bera olaman, suhbat qura olaman!",
+        "Hozircha oddiy suhbat qila olaman, kelajakda ko'proq!"
+      ]
+    },
+    {
+      "tag": "matematika",
+      "patterns": ["2+2", "2=2", "Hisob-kitob", "Matematika", "Son qo'sh"],
+      "responses": [
+        "Men hozircha matematik hisob qila olmayman!",
+        "Buning uchun kalkulyator ishlating 😊"
+      ]
+    },
+    {
+      "tag": "rahmat",
+      "patterns": ["Rahmat", "Tashakkur", "Katta rahmat", "Spasibo", "Thanks"],
+      "responses": ["Arzimaydi!", "Xizmat!", "Doimo yordam berishga tayyorman!"]
+    },
+    {
+      "tag": "yordam",
+      "patterns": ["Yordam", "Help", "Menga yordam ker", "Qo'llab-quvvat"],
+      "responses": [
+        "Albatta, qanday yordam kerak?",
+        "Gapiravering, tinglayapman!"
+      ]
+    },
+    {
+      "tag": "vaqt",
+      "patterns": ["Soat nechada", "Hozir soat necha", "Vaqt", "Qancha vaqt"],
+      "responses": ["Vaqtni bilmayman, telefoningizga qarang 😊"]
+    }
+  ]
+}
