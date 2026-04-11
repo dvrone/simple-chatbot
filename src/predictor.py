@@ -1,6 +1,8 @@
+import os
 import pickle
 import random
 from datetime import datetime
+from pathlib import Path
 
 from thefuzz import process
 
@@ -74,6 +76,27 @@ class ChatbotPredictor:
         month_name = months[now.month - 1]
         return f"Bugun {day_name}, {now.day} {month_name} {now.year} 📅"
 
+    def get_music_list(self) -> list:
+        music_dir = Path.home() / "Music"
+        extensions = (".mp3", ".wav", ".flac", ".ogg")
+        return [f for f in music_dir.iterdir() if f.suffix in extensions]
+
+    def play_music(self, text: str) -> str:
+        files = self.get_music_list()
+        if not files:
+            return "Musiqa papkasida hech narsa topilmadi!"
+
+        text_lower = text.lower()
+        for f in files:
+            stem_normalized = f.stem.lower().replace("-", " ").replace("_", " ")
+            if stem_normalized in text_lower or f.stem.lower() in text_lower:
+                os.system(f"mpg123 '{f}' &")
+                return f"🎵 {f.stem} ijro etilmoqda!"
+
+        chosen = random.choice(files)
+        os.system(f"mpg123 '{chosen}' &")
+        return f"🎵 {chosen.stem} ijro etilmoqda!"
+
     def predict(self, text: str) -> str:
         text = preprocess(text)
         fuzzy_tag = self.fuzzy_match(text)
@@ -104,6 +127,15 @@ class ChatbotPredictor:
             name = self.memory.recall("name")
             if name:
                 return f"Salom {name}, ismingizni eslab qoldim! 😊"
+
+        # Musiqa to'xtatish
+        if any(w in text_lower for w in ["stop", "to'xtat", "bas", "yetarli"]):
+            os.system("pkill mpg123")
+            return "🎵 Musiqa to'xtatildi!"
+
+        # Musiqa ijro etish
+        if any(w in text_lower for w in ["musiqa", "qo'shiq", "qo'y", "ijro"]):
+            return self.play_music(text)
 
         # Vaqt
         if any(
