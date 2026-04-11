@@ -1,10 +1,12 @@
-from src.utils import load_intents, prepare_data
-from src.trainer import ChatbotTrainer
-from src.predictor import ChatbotPredictor
 from pathlib import Path
+
+from src.predictor import ChatbotPredictor
+from src.trainer import ChatbotTrainer
+from src.utils import load_intents, prepare_data
 
 INTENTS_PATH = "data/intents.json"
 MODEL_PATH = "models/chatbot.pkl"
+
 
 def train():
     intents = load_intents(INTENTS_PATH)
@@ -12,6 +14,7 @@ def train():
     trainer = ChatbotTrainer()
     trainer.train(X, y)
     trainer.save(MODEL_PATH)
+
 
 def chat():
     intents = load_intents(INTENTS_PATH)
@@ -24,6 +27,7 @@ def chat():
             break
         response = predictor.get_response(user_input, intents)
         print(f"Bot: {response}\n")
+
 
 if __name__ == "__main__":
     if not Path(MODEL_PATH).exists():

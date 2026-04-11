@@ -1,7 +1,9 @@
-import speech_recognition as sr
-from gtts import gTTS
 import os
 import tempfile
+
+import speech_recognition as sr
+from gtts import gTTS
+
 
 def listen() -> str:
     recognizer = sr.Recognizer()
@@ -22,8 +24,9 @@ def listen() -> str:
         print(f"API xato: {e}")
         return ""
 
+
 def speak(text: str):
-    tts = gTTS(text=text, lang="uz")
+    tts = gTTS(text=text, lang="ru")
     with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as f:
         tts.save(f.name)
         os.system(f"mpg123 {f.name}")
