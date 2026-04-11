@@ -86,7 +86,6 @@ class ChatbotPredictor:
         if not files:
             return "Musiqa papkasida hech narsa topilmadi!"
 
-        # Avvalgi musiqani to'xtatish
         os.system("pkill mpg123")
 
         text_lower = text.lower()
@@ -101,6 +100,24 @@ class ChatbotPredictor:
         chosen = random.choice(files)
         os.system(f"mpg123 '{chosen}' &")
         return f"🎵 {chosen.stem} ijro etilmoqda!"
+
+    def volume_up(self) -> str:
+        os.system("amixer set Master 10%+")
+        result = os.popen("amixer get Master").read()
+        for line in result.split("\n"):
+            if "Front Left:" in line:
+                percent = line.split("[")[1].split("]")[0]
+                return f"🔊 Ovoz balandligi: {percent}"
+        return "🔊 Ovoz oshirildi!"
+
+    def volume_down(self) -> str:
+        os.system("amixer set Master 10%-")
+        result = os.popen("amixer get Master").read()
+        for line in result.split("\n"):
+            if "Front Left:" in line:
+                percent = line.split("[")[1].split("]")[0]
+                return f"🔉 Ovoz balandligi: {percent}"
+        return "🔉 Ovoz pasaytirildi!"
 
     def predict(self, text: str) -> str:
         text = preprocess(text)
@@ -143,6 +160,13 @@ class ChatbotPredictor:
                 return "Musiqa papkasida hech narsa topilmadi!"
             names = "\n".join([f"🎵 {f.stem}" for f in files])
             return f"Musiqa papkasidagi qo'shiqlar:\n{names}"
+
+        # Ovoz balandligi
+        if any(w in text_lower for w in ["ovozni oshir", "balandroq", "ovoz oshir"]):
+            return self.volume_up()
+
+        if any(w in text_lower for w in ["ovozni pasayt", "pastroq", "ovoz pasayt"]):
+            return self.volume_down()
 
         # Musiqa to'xtatish
         if any(w in text_lower for w in ["stop", "to'xtat", "bas", "yetarli"]):
