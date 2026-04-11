@@ -3,6 +3,7 @@ from pathlib import Path
 from src.utils import load_intents, prepare_data
 from src.trainer import ChatbotTrainer
 from src.predictor import ChatbotPredictor
+from src.voice import listen, speak
 
 INTENTS_PATH = "data/intents.json"
 MODEL_PATH = "models/chatbot.pkl"
@@ -32,15 +33,32 @@ for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
         st.markdown(msg["content"])
 
-# Foydalanuvchi inputi
-if user_input := st.chat_input("Xabar yozing..."):
-    # Foydalanuvchi xabari
+# Tugmalar
+col1, col2 = st.columns([6, 1])
+
+with col1:
+    user_input = st.chat_input("Xabar yozing...")
+
+with col2:
+    voice_btn = st.button("🎤")
+
+# Ovozli input
+if voice_btn:
+    with st.spinner("Tinglayapman..."):
+        user_input = listen()
+    if not user_input:
+        st.warning("Ovoz tanilmadi, qayta urining!")
+
+# Xabar yuborish
+if user_input:
     st.session_state.messages.append({"role": "user", "content": user_input})
     with st.chat_message("user"):
         st.markdown(user_input)
 
-    # Bot javobi
     response = predictor.get_response(user_input, intents)
     st.session_state.messages.append({"role": "assistant", "content": response})
     with st.chat_message("assistant"):
         st.markdown(response)
+
+    # Ovozli javob
+    speak(response)

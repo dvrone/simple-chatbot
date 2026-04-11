@@ -2,12 +2,28 @@
   "intents": [
     {
       "tag": "salom",
-      "patterns": ["Salom", "Assalomu alaykum", "Hayy", "Hola", "Hi", "Hey"],
+      "patterns": [
+        "Salom",
+        "Assalomu alaykum",
+        "Hayy",
+        "Hola",
+        "Hi",
+        "Hey",
+        "Salom yana"
+      ],
       "responses": ["Assalomu alaykum!", "Salom! Qanday yordam bera olaman?"]
     },
     {
       "tag": "xayr",
-      "patterns": ["Xayr", "Ko'rishguncha", "Hayr", "Bye", "Goodbye", "Chao"],
+      "patterns": [
+        "Xayr",
+        "Ko'rishguncha",
+        "Hayr",
+        "Bye",
+        "Goodbye",
+        "Chao",
+        "Ketdim"
+      ],
       "responses": ["Xayr!", "Ko'rishguncha, sog' bo'ling!"]
     },
     {
@@ -17,7 +33,9 @@
         "Yaxshimisiz",
         "Ahvolingiz qanday",
         "Qandaysiz",
-        "How are you"
+        "How are you",
+        "Nima gap",
+        "Ishlar qanday"
       ],
       "responses": ["Yaxshi, rahmat! Siz-chi?", "Juda sog'-salom, tashakkur!"]
     },
@@ -28,7 +46,9 @@
         "Siz kimsiz",
         "Nomi nima",
         "Isming nima",
-        "Sen kimsiz"
+        "Sen kimsiz",
+        "Ism",
+        "Ismi"
       ],
       "responses": ["Men bir chatbotman!", "Mening ismim ChatBot."]
     },
@@ -40,7 +60,8 @@
         "Ajoyib",
         "Hammasi yaxshi",
         "Super",
-        "Sof"
+        "Sof",
+        "Juda yaxshi"
       ],
       "responses": ["Juda soz!", "Barakalla!"]
     },
@@ -50,7 +71,8 @@
         "Sen nimalar qila olasan",
         "Qanday yordam bera olasan",
         "Nima qila olasan",
-        "Imkoniyatlaring nima"
+        "Imkoniyatlaring nima",
+        "Nima bilasan"
       ],
       "responses": [
         "Men savollarga javob bera olaman, suhbat qura olaman!",
@@ -59,7 +81,14 @@
     },
     {
       "tag": "matematika",
-      "patterns": ["2+2", "2=2", "Hisob-kitob", "Matematika", "Son qo'sh"],
+      "patterns": [
+        "2+2",
+        "2=2",
+        "Hisob-kitob",
+        "Matematika",
+        "Son qo'sh",
+        "Hisob"
+      ],
       "responses": [
         "Men hozircha matematik hisob qila olmayman!",
         "Buning uchun kalkulyator ishlating 😊"
@@ -67,12 +96,25 @@
     },
     {
       "tag": "rahmat",
-      "patterns": ["Rahmat", "Tashakkur", "Katta rahmat", "Spasibo", "Thanks"],
+      "patterns": [
+        "Rahmat",
+        "Tashakkur",
+        "Katta rahmat",
+        "Spasibo",
+        "Thanks",
+        "Minnatdorman"
+      ],
       "responses": ["Arzimaydi!", "Xizmat!", "Doimo yordam berishga tayyorman!"]
     },
     {
       "tag": "yordam",
-      "patterns": ["Yordam", "Help", "Menga yordam ker", "Qo'llab-quvvat"],
+      "patterns": [
+        "Yordam",
+        "Help",
+        "Menga yordam ker",
+        "Qo'llab-quvvat",
+        "Yordam kerak"
+      ],
       "responses": [
         "Albatta, qanday yordam kerak?",
         "Gapiravering, tinglayapman!"
@@ -80,8 +122,97 @@
     },
     {
       "tag": "vaqt",
-      "patterns": ["Soat nechada", "Hozir soat necha", "Vaqt", "Qancha vaqt"],
-      "responses": ["Vaqtni bilmayman, telefoningizga qarang 😊"]
+      "patterns": [
+        "Soat nechada",
+        "Hozir soat necha",
+        "Vaqt",
+        "Qancha vaqt",
+        "Soat necha",
+        "Necha soat"
+      ],
+      "responses": [
+        "Vaqtni bilmayman, telefoningizga qarang 😊",
+        "Soatni bilish uchun qurilmangizga qarang!"
+      ]
+    },
+    {
+      "tag": "ob_havo",
+      "patterns": [
+        "Ob-havo qanday",
+        "Havo qanday",
+        "Tashqarida sovuqmi",
+        "Yomg'ir yog'yapti",
+        "Havo issiqligi",
+        "Bugun havo",
+        "Ob havo"
+      ],
+      "responses": [
+        "Ob-havoni bilmayman, lekin tashqariga chiqib ko'ring 😄",
+        "Bugun ob-havoni bilish uchun weather.com ga kiring!"
+      ]
+    },
+    {
+      "tag": "kun",
+      "patterns": [
+        "Bugun necha",
+        "Bugun qaysi kun",
+        "Qaysi kun",
+        "Hozir qaysi oy",
+        "Sana necha",
+        "Bugun sana",
+        "Kun necha"
+      ],
+      "responses": [
+        "Bugun sanani bilmayman, telefoningizga qarang 😊",
+        "Sanani bilish uchun qurilmangizni tekshiring!"
+      ]
+    },
+    {
+      "tag": "kayfiyat",
+      "patterns": [
+        "Kayfiyating qanday",
+        "Xursandmisan",
+        "Baxtlimisan",
+        "Hozir qanday his qilyapsan",
+        "Ruhiyating qanday"
+      ],
+      "responses": [
+        "Men doim xursandman, chunki siz bilan suhbatlashyapman! 😊",
+        "Kayfiyatim a'lo, tashakkur!"
+      ]
+    },
+    {
+      "tag": "fasl",
+      "patterns": [
+        "Hozir qaysi fasl",
+        "Yozmi",
+        "Qishmi",
+        "Bahorm",
+        "Kuzmi",
+        "Fasl qanday"
+      ],
+      "responses": [
+        "Faslni bilmayman, lekin tashqaridan bilib olsa bo'ladi 😄",
+        "Qaysi fasilda ekanligingizni bilmayman!"
+      ]
+    },
+    {
+      "tag": "hafta_kuni",
+      "patterns": [
+        "Bugun nechida",
+        "Hafta kuni",
+        "Dushanba",
+        "Seshanba",
+        "Chorshanba",
+        "Payshanba",
+        "Juma",
+        "Shanba",
+        "Yakshanba"
+      ],
+      "responses": [
+        "Hafta kunini bilmayman, telefoningizga qarang 😊",
+        "Bugun qaysi hafta kuni ekanini bilmayman!"
+      ]
     }
   ]
 }
