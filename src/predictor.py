@@ -86,12 +86,17 @@ class ChatbotPredictor:
         if not files:
             return "Musiqa papkasida hech narsa topilmadi!"
 
+        # Avvalgi musiqani to'xtatish
+        os.system("pkill mpg123")
+
         text_lower = text.lower()
-        for f in files:
-            stem_normalized = f.stem.lower().replace("-", " ").replace("_", " ")
-            if stem_normalized in text_lower or f.stem.lower() in text_lower:
-                os.system(f"mpg123 '{f}' &")
-                return f"🎵 {f.stem} ijro etilmoqda!"
+        stems = {f.stem.lower().replace("-", " ").replace("_", " "): f for f in files}
+
+        match, score = process.extractOne(text_lower, stems.keys())
+        if score >= 50:
+            chosen = stems[match]
+            os.system(f"mpg123 '{chosen}' &")
+            return f"🎵 {chosen.stem} ijro etilmoqda!"
 
         chosen = random.choice(files)
         os.system(f"mpg123 '{chosen}' &")
@@ -127,6 +132,17 @@ class ChatbotPredictor:
             name = self.memory.recall("name")
             if name:
                 return f"Salom {name}, ismingizni eslab qoldim! 😊"
+
+        # Musiqa ro'yxati
+        if any(
+            w in text_lower
+            for w in ["musiqa ro'yxat", "qo'shiqlar", "musiqalar", "nima bor"]
+        ):
+            files = self.get_music_list()
+            if not files:
+                return "Musiqa papkasida hech narsa topilmadi!"
+            names = "\n".join([f"🎵 {f.stem}" for f in files])
+            return f"Musiqa papkasidagi qo'shiqlar:\n{names}"
 
         # Musiqa to'xtatish
         if any(w in text_lower for w in ["stop", "to'xtat", "bas", "yetarli"]):
