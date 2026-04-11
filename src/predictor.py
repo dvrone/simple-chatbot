@@ -1,5 +1,6 @@
 import pickle
 import random
+from datetime import datetime
 
 from thefuzz import process
 
@@ -40,6 +41,39 @@ class ChatbotPredictor:
                     if name and name.lower() not in ["nima", "kim", "qanday"]:
                         self.memory.remember("name", name)
 
+    def get_current_time(self) -> str:
+        now = datetime.now()
+        return f"Hozir soat {now.strftime('%H:%M')} 🕐"
+
+    def get_current_date(self) -> str:
+        now = datetime.now()
+        days = [
+            "Dushanba",
+            "Seshanba",
+            "Chorshanba",
+            "Payshanba",
+            "Juma",
+            "Shanba",
+            "Yakshanba",
+        ]
+        months = [
+            "Yanvar",
+            "Fevral",
+            "Mart",
+            "Aprel",
+            "May",
+            "Iyun",
+            "Iyul",
+            "Avgust",
+            "Sentabr",
+            "Oktabr",
+            "Noyabr",
+            "Dekabr",
+        ]
+        day_name = days[now.weekday()]
+        month_name = months[now.month - 1]
+        return f"Bugun {day_name}, {now.day} {month_name} {now.year} 📅"
+
     def predict(self, text: str) -> str:
         text = preprocess(text)
         fuzzy_tag = self.fuzzy_match(text)
@@ -54,7 +88,7 @@ class ChatbotPredictor:
 
         text_lower = text.lower()
 
-        # 1. Avval ism so'rashni tekshirish
+        # Ism so'rash
         if any(
             w in text_lower
             for w in ["ismim nima", "mening ismim nima", "meni bilasanmi"]
@@ -64,14 +98,35 @@ class ChatbotPredictor:
                 return f"Sizning ismingiz {name}!"
             return "Ismingizni bilmayman, aytib bering!"
 
-        # 2. Keyin ism saqlash
+        # Ism saqlash
         self.extract_user_data(text)
         if any(w in text_lower for w in ["ismim ", "mening ismim "]):
             name = self.memory.recall("name")
             if name:
                 return f"Salom {name}, ismingizni eslab qoldim! 😊"
 
-        # 3. Intent tekshirish
+        # Vaqt
+        if any(
+            w in text_lower
+            for w in ["soat necha", "soat nechada", "hozir soat", "vaqt"]
+        ):
+            return self.get_current_time()
+
+        # Sana
+        if any(
+            w in text_lower
+            for w in [
+                "bugun necha",
+                "bugun sana",
+                "qaysi kun",
+                "bugun kun",
+                "kun necha",
+                "sana",
+            ]
+        ):
+            return self.get_current_date()
+
+        # Intent tekshirish
         tag = self.predict(text)
         self.memory.add("user", text)
 

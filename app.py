@@ -1,8 +1,10 @@
-import streamlit as st
 from pathlib import Path
-from src.utils import load_intents, prepare_data
-from src.trainer import ChatbotTrainer
+
+import streamlit as st
+
 from src.predictor import ChatbotPredictor
+from src.trainer import ChatbotTrainer
+from src.utils import load_intents, prepare_data
 
 INTENTS_PATH = "data/intents.json"
 MODEL_PATH = "models/chatbot.pkl"
