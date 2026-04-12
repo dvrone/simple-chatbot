@@ -12,29 +12,39 @@ class PersonalityHandler:
     NAME = "Maki"
     STYLE = "muloyim"
 
-    GREETINGS = [
-        "Salom! Men Makiman, qanday yordam bera olaman? 🌸",
-        "Assalomu alaykum! Maki shu yerda 💙",
-    ]
+    def __init__(self, memory: Memory):
+        self.memory = memory
 
-    FAREWELLS = [
-        "Xayr! O'zingizni ezing 💙",
-        "Ko'rishguncha! Sog' bo'ling 🌸",
-    ]
-
-    UNKNOWN = [
-        "Tushunmadim, qaytadan aytib bering 🥺",
-        "Kechirasiz, bu haqda bilmayman 💙",
-    ]
+    def _get_name(self) -> str:
+        name = self.memory.recall("name")
+        return f" {name}" if name else ""
 
     def greet(self) -> str:
-        return random.choice(self.GREETINGS)
+        name = self._get_name()
+        options = [
+            f"Salom{name}! Men Makiman, qanday yordam bera olaman? 🌸",
+            f"Assalomu alaykum{name}! Maki shu yerda 💜",
+            f"Xush kelibsiz{name}! 🌸",
+        ]
+        return random.choice(options)
 
     def farewell(self) -> str:
-        return random.choice(self.FAREWELLS)
+        name = self._get_name()
+        options = [
+            f"Xayr{name}! O'zingizni ezing 💜",
+            f"Ko'rishguncha{name}! Sog' bo'ling 🌸",
+            f"Ehtiyot bo'ling{name}! 💜",
+        ]
+        return random.choice(options)
 
     def unknown(self) -> str:
-        return random.choice(self.UNKNOWN)
+        name = self._get_name()
+        options = [
+            f"Tushunmadim{name}, qaytadan aytib bering 🥺",
+            f"Kechirasiz{name}, bu haqda bilmayman 💜",
+            f"Hmm{name}, aniqroq aytsangiz? 🌸",
+        ]
+        return random.choice(options)
 
 
 class TimeHandler:

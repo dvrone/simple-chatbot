@@ -22,7 +22,7 @@ class ChatbotPredictor:
         self.music = MusicHandler()
         self.volume = VolumeHandler()
         self.mem_handler = MemoryHandler(self.memory)
-        self.personality = PersonalityHandler()
+        self.personality = PersonalityHandler(self.memory)
 
     def load_patterns(self, intents: dict):
         for intent in intents["intents"]:
@@ -33,16 +33,19 @@ class ChatbotPredictor:
         if not self.all_patterns:
             return None
         match, score = process.extractOne(text, self.all_patterns.keys())
-        if score >= 70:
+        if score >= 80:  # 70 dan 80 ga oshirdik
             return self.all_patterns[match]
         return None
 
-    def predict(self, text: str) -> str:
+    def predict(self, text: str) -> str | None:
         text = preprocess(text)
         fuzzy_tag = self.fuzzy_match(text)
         if fuzzy_tag:
             return fuzzy_tag
         embedding = self.encoder.encode([text])
+        proba = self.classifier.predict_proba(embedding)[0]
+        if max(proba) < 0.3:  # ishonch past bo'lsa None qaytaradi
+            return None
         return self.classifier.predict(embedding)[0]
 
     def get_response(self, text: str, intents: dict) -> str:
@@ -145,6 +148,9 @@ class ChatbotPredictor:
 
         # Intent tekshirish
         tag = self.predict(text)
+        if tag is None:
+            return self.personality.unknown()
+
         self.memory.add("user", text)
 
         for intent in intents["intents"]:
