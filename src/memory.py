@@ -1,19 +1,45 @@
+import sqlite3
+from pathlib import Path
+
+
 class Memory:
-    def __init__(self, max_history: int = 10):
-        self.history = []
+    def __init__(self, db_path: str = "data/memory.db", max_history: int = 10):
+        self.db_path = db_path
         self.max_history = max_history
-        self.user_data = {}
+        self.history = []
+        Path(db_path).parent.mkdir(exist_ok=True)
+        self._init_db()
+
+    def _init_db(self):
+        with sqlite3.connect(self.db_path) as conn:
+            conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS user_data (
+                    key TEXT PRIMARY KEY,
+                    value TEXT
+                )
+            """
+            )
+            conn.commit()
+
+    def remember(self, key: str, value: str):
+        with sqlite3.connect(self.db_path) as conn:
+            conn.execute(
+                "INSERT OR REPLACE INTO user_data (key, value) VALUES (?, ?)",
+                (key, value),
+            )
+            conn.commit()
+
+    def recall(self, key: str) -> str | None:
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.execute("SELECT value FROM user_data WHERE key = ?", (key,))
+            row = cursor.fetchone()
+            return row[0] if row else None
 
     def add(self, role: str, text: str):
         self.history.append({"role": role, "text": text})
         if len(self.history) > self.max_history:
             self.history.pop(0)
-
-    def remember(self, key: str, value: str):
-        self.user_data[key] = value
-
-    def recall(self, key: str) -> str | None:
-        return self.user_data.get(key)
 
     def get_context(self) -> str:
         if not self.history:
@@ -26,4 +52,6 @@ class Memory:
 
     def clear(self):
         self.history = []
-        self.user_data = {}
+        with sqlite3.connect(self.db_path) as conn:
+            conn.execute("DELETE FROM user_data")
+            conn.commit()
