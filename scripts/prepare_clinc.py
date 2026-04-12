@@ -4,21 +4,24 @@ from datasets import load_dataset
 
 
 def prepare_clinc():
-    print("CLINC150 yuklanmoqda...")
+    """Download CLINC150 dataset and convert it to intents.json format."""
+    print("Loading CLINC150 dataset...")
     ds = load_dataset("clinc_oos", "plus")
 
+    # Get intent label names
     label_names = ds["train"].features["intent"].names
     intents = {}
 
+    # Build intents dictionary from training data
     for example in ds["train"]:
         label = label_names[example["intent"]]
-        if label == "oos":  # out-of-scope skip
+        if label == "oos":  # Skip out-of-scope examples
             continue
         if label not in intents:
             intents[label] = {"tag": label, "patterns": [], "responses": []}
         intents[label]["patterns"].append(example["text"])
 
-    # Har intent uchun default response
+    # Default responses for common intents
     default_responses = {
         "greeting": [
             "Hello! I'm Maki, how can I help you? 🌸",
@@ -61,6 +64,14 @@ def prepare_clinc():
         ],
     }
 
+    # Assign responses to intents
+    for tag, intent in intents.items():
+        if tag in default_responses:
+            intent["responses"] = default_responses[tag]
+        else:
+            intent["responses"] = [f"I can help you with {tag.replace('_', ' ')}! 💜"]
+
+    # Add extra patterns for better recognition
     extra_patterns = {
         "greeting": ["hello", "hi", "hey", "good morning", "good evening", "howdy"],
         "goodbye": ["bye", "goodbye", "see you", "take care", "later"],
@@ -73,7 +84,11 @@ def prepare_clinc():
         ],
     }
 
-    # Qo'shimcha custom intentlar
+    for tag, patterns in extra_patterns.items():
+        if tag in intents:
+            intents[tag]["patterns"].extend(patterns)
+
+    # Add custom intents not in CLINC150
     custom_intents = [
         {
             "tag": "love",
@@ -105,22 +120,12 @@ def prepare_clinc():
     for custom in custom_intents:
         intents[custom["tag"]] = custom
 
-    for tag, patterns in extra_patterns.items():
-        if tag in intents:
-            intents[tag]["patterns"].extend(patterns)
-
-    for tag, intent in intents.items():
-        if tag in default_responses:
-            intent["responses"] = default_responses[tag]
-        else:
-            intent["responses"] = [f"I can help you with {tag.replace('_', ' ')}! 💜"]
-
+    # Save to intents.json
     result = {"intents": list(intents.values())}
-
     with open("data/intents.json", "w", encoding="utf-8") as f:
         json.dump(result, f, ensure_ascii=False, indent=2)
 
-    print(f"✅ {len(intents)} ta intent saqlandi → data/intents.json")
+    print(f"✅ {len(intents)} intents saved → data/intents.json")
 
 
 if __name__ == "__main__":

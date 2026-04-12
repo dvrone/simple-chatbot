@@ -1,7 +1,6 @@
 import pickle
 import random
 import re
-from datetime import datetime
 
 from thefuzz import process
 
@@ -13,7 +12,10 @@ from src.features.handlers import (MemoryHandler, MusicHandler,
 
 
 class ChatbotPredictor:
+    """Main predictor class that handles all chatbot responses."""
+
     def __init__(self, model_path: str = "models/chatbot.pkl"):
+        """Load the trained model and initialize all handlers."""
         with open(model_path, "rb") as f:
             data = pickle.load(f)
         self.encoder = data["encoder"]
@@ -27,143 +29,176 @@ class ChatbotPredictor:
         self.personality = PersonalityHandler(self.memory)
 
     def load_patterns(self, intents: dict):
+        """Load all intent patterns into a lookup dictionary."""
         for intent in intents["intents"]:
             for pattern in intent["patterns"]:
                 self.all_patterns[preprocess(pattern)] = intent["tag"]
 
     def fuzzy_match(self, text: str) -> str | None:
+        """Find the closest matching intent using fuzzy string matching."""
         if not self.all_patterns:
             return None
         match, score = process.extractOne(text, self.all_patterns.keys())
-        if score >= 80:  # 70 dan 80 ga oshirdik
+        if score >= 80:
             return self.all_patterns[match]
         return None
 
     def predict(self, text: str) -> str | None:
+        """Predict the intent of the given text using the trained model."""
         text = preprocess(text)
         fuzzy_tag = self.fuzzy_match(text)
         if fuzzy_tag:
             return fuzzy_tag
         embedding = self.encoder.encode([text])
         proba = self.classifier.predict_proba(embedding)[0]
-        if max(proba) < 0.3:  # ishonch past bo'lsa None qaytaradi
+        if max(proba) < 0.3:
             return None
         return self.classifier.predict(embedding)[0]
 
     def get_response(self, text: str, intents: dict) -> str:
+        """Generate a response for the given user input."""
         if not self.all_patterns:
             self.load_patterns(intents)
 
         text_lower = text.lower()
 
-        # Salom
-        if re.search(r"\b(salom|assalomu alaykum|hayy)\b", text_lower):
+        # Handle greetings
+        if re.search(r"\b(hello|hi|hey|howdy|greetings)\b", text_lower):
             return self.personality.greet()
 
-        # Xayr
-        if re.search(r"\b(xayr|hayr|ko'rishguncha|bye)\b", text_lower):
+        # Handle farewells
+        if re.search(r"\b(bye|goodbye|see you|take care|later)\b", text_lower):
             return self.personality.farewell()
 
-        # Ism so'rash
+        # Handle name query
         if any(
             w in text_lower
-            for w in ["ismim nima", "mening ismim nima", "meni bilasanmi"]
+            for w in ["what is my name", "do you know my name", "my name is what"]
         ):
             return self.mem_handler.recall_name()
 
-        # Yosh so'rash
-        if any(w in text_lower for w in ["yoshim necha", "men necha yoshda"]) or (
-            "yoshim" in text_lower and "?" in text
+        # Handle age query
+        if any(
+            w in text_lower
+            for w in ["how old am i", "what is my age", "my age is what"]
         ):
             return self.mem_handler.recall_age()
 
-        # Shahar so'rash
+        # Handle city query
         if any(
             w in text_lower
-            for w in ["qayerda yashayman", "shahrim qayer", "qayerdanman"]
+            for w in ["where do i live", "what is my city", "where am i from"]
         ):
             return self.mem_handler.recall_city()
 
-        # Ma'lumot saqlash
+        # Extract and store user information
         self.mem_handler.extract(text)
 
-        # Ism saqlash javobi
-        if any(w in text_lower for w in ["ismim ", "mening ismim "]):
+        # Respond to name introduction
+        if any(w in text_lower for w in ["my name is ", "call me "]):
             name = self.memory.recall("name")
             if name:
-                return f"Salom {name}, ismingizni eslab qoldim! 🌸"
+                return f"Nice to meet you, {name}! 🌸"
 
-        # Yosh saqlash javobi
-        if "yoshim" in text_lower and "?" not in text:
+        # Respond to age introduction
+        if "years old" in text_lower:
             age = self.memory.recall("age")
             if age:
-                return f"Yoshingiz {age} ekanini eslab qoldim! 💙"
+                return f"Got it, you are {age} years old! 💜"
 
-        # Shahar saqlash javobi
-        if any(w in text_lower for w in ["da yashayman", "dan kelganman"]):
+        # Respond to city introduction
+        if any(w in text_lower for w in ["i live in ", "i am from ", "i'm from "]):
             city = self.memory.recall("city")
             if city:
-                return f"{city}da yashashingizni eslab qoldim! 🌸"
+                return f"Oh, {city}! That's a great place 🌸"
 
-        # Musiqa ro'yxati
-        if any(
-            w in text_lower
-            for w in ["musiqa ro'yxat", "qo'shiqlar", "musiqalar", "nima bor"]
-        ):
-            return self.music.show_list()
-
-        # Ovoz balandligi
-        if any(w in text_lower for w in ["ovozni oshir", "balandroq", "ovoz oshir"]):
-            return self.volume.up()
-
-        if any(w in text_lower for w in ["ovozni pasayt", "pastroq", "ovoz pasayt"]):
-            return self.volume.down()
-
-        # Musiqa to'xtatish
-        if any(w in text_lower for w in ["stop", "to'xtat", "bas", "yetarli"]):
-            return self.music.stop()
-
-        # Musiqa ijro etish
-        if any(w in text_lower for w in ["musiqa", "qo'shiq", "qo'y", "ijro"]):
-            return self.music.play(text)
-
-        # Vaqt
-        if any(
-            w in text_lower
-            for w in ["soat necha", "soat nechada", "hozir soat", "vaqt"]
-        ):
-            return self.time.get_time()
-
-        # Sana
+        # Handle music list request
         if any(
             w in text_lower
             for w in [
-                "bugun necha",
-                "bugun sana",
-                "qaysi kun",
-                "bugun kun",
-                "kun necha",
+                "music list",
+                "list songs",
+                "what songs",
+                "musiqalar",
+                "qo'shiqlar",
+            ]
+        ):
+            return self.music.show_list()
+
+        # Handle volume up
+        if any(
+            w in text_lower
+            for w in [
+                "increase volume",
+                "volume up",
+                "louder",
+                "ovozni oshir",
+                "ovoz oshir",
+            ]
+        ):
+            return self.volume.up()
+
+        # Handle volume down
+        if any(
+            w in text_lower
+            for w in [
+                "decrease volume",
+                "volume down",
+                "quieter",
+                "ovozni pasayt",
+                "ovoz pasayt",
+            ]
+        ):
+            return self.volume.down()
+
+        # Handle music stop
+        if any(
+            w in text_lower for w in ["stop", "stop music", "pause", "bas", "to'xtat"]
+        ):
+            return self.music.stop()
+
+        # Handle music play
+        if any(w in text_lower for w in ["play", "musiqa", "qo'shiq", "qo'y", "ijro"]):
+            return self.music.play(text)
+
+        # Handle time query
+        if any(
+            w in text_lower
+            for w in ["what time", "current time", "time now", "soat necha"]
+        ):
+            return self.time.get_time_en()
+
+        # Handle date query
+        if any(
+            w in text_lower
+            for w in [
+                "what date",
+                "today's date",
+                "what day",
+                "bugun qaysi kun",
                 "sana",
             ]
         ):
-            return self.time.get_date()
+            return self.time.get_date_en()
 
-        # Intent tekshirish
+        # Predict intent using the trained model
         tag = self.predict(text)
         if tag is None:
             return self.personality.unknown()
 
         self.memory.add("user", text)
 
-        # Maxsus intentlar uchun action
+        # Map intents to specific actions
         action_map = {
             "play_music": lambda: self.music.play(text),
             "time": lambda: self.time.get_time_en(),
             "date": lambda: self.time.get_date_en(),
             "greeting": lambda: self.personality.greet(),
             "goodbye": lambda: self.personality.farewell(),
-            "thank_you": lambda: random.choice(["You're welcome! 🌸", "Anytime! 💜"]),
-            "what_is_your_name": lambda: "My name is Maki 🌸",
+            "thank_you": lambda: random.choice(
+                ["You're welcome! 🌸", "Anytime! 💜", "Happy to help! 🌸"]
+            ),
+            "what_is_your_name": lambda: f"My name is Maki 🌸",
             "are_you_a_bot": lambda: "I'm Maki, an AI assistant 💜",
             "what_are_your_hobbies": lambda: random.choice(
                 [
@@ -171,6 +206,11 @@ class ChatbotPredictor:
                     "Talking to you is my favorite hobby 🌸",
                 ]
             ),
+            "what_can_i_ask_you": lambda: "You can ask me about time, music, jokes, and much more! 🌸",
+            "who_made_you": lambda: random.choice(
+                ["I was made with love 💜", "I'm built with Python and sklearn 🌸"]
+            ),
+            "meaning_of_life": lambda: "42! Just kidding 😄 It's about love and connection 💜",
             "tell_joke": lambda: random.choice(
                 [
                     "Why don't scientists trust atoms? Because they make up everything! 😄",
@@ -180,6 +220,21 @@ class ChatbotPredictor:
             ),
             "flip_coin": lambda: random.choice(["Heads! 🪙", "Tails! 🪙"]),
             "roll_dice": lambda: f"You rolled a {random.randint(1, 6)}! 🎲",
+            "fun_fact": lambda: random.choice(
+                [
+                    "Did you know honey never spoils? 🍯",
+                    "A group of flamingos is called a flamboyance! 🦩",
+                    "Octopuses have three hearts! 🐙",
+                ]
+            ),
+            "change_volume": lambda: (
+                self.volume.up()
+                if any(w in text_lower for w in ["increase", "up", "louder", "raise"])
+                else self.volume.down()
+            ),
+            "next_song": lambda: self.music.play(text),
+            "what_song": lambda: self.music.show_list(),
+            "user_name": lambda: self.mem_handler.recall_name(),
             "love": lambda: random.choice(
                 [
                     "I love you too! 💜",
@@ -190,10 +245,6 @@ class ChatbotPredictor:
             "hate": lambda: random.choice(
                 ["I'm sorry to hear that 🥺", "I'll try to do better 💜"]
             ),
-            "change_volume": lambda: self.volume.up() if any(w in text_lower for w in ["increase", "up", "louder", "raise"]) else self.volume.down(),
-"next_song": lambda: self.music.play(text),
-"what_song": lambda: self.music.show_list(),
-"user_name": lambda: self.mem_handler.recall_name(),
         }
 
         if tag in action_map:
@@ -201,6 +252,7 @@ class ChatbotPredictor:
             self.memory.add("bot", response)
             return response
 
+        # Fall back to intent responses
         for intent in intents["intents"]:
             if intent["tag"] == tag:
                 response = random.choice(intent["responses"])

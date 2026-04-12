@@ -6,10 +6,11 @@ from src.core.predictor import ChatbotPredictor
 from src.core.trainer import ChatbotTrainer
 from src.core.utils import load_intents, prepare_data
 
+# File paths
 INTENTS_PATH = "data/intents.json"
 MODEL_PATH = "models/chatbot.pkl"
 
-# Model yo'q bo'lsa o'rgat
+# Train the model if it doesn't exist
 if not Path(MODEL_PATH).exists():
     intents = load_intents(INTENTS_PATH)
     X, y = prepare_data(intents)
@@ -17,27 +18,26 @@ if not Path(MODEL_PATH).exists():
     trainer.train(X, y)
     trainer.save(MODEL_PATH)
 
-# Intents yuklash
+# Load intents and initialize predictor
 intents = load_intents(INTENTS_PATH)
 
-# Predictor va xabarlarni session_state da saqlash
 if "predictor" not in st.session_state:
     st.session_state.predictor = ChatbotPredictor(MODEL_PATH)
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# Sahifa sozlamalari
+# Page configuration
 st.set_page_config(page_title="Maki 💜", page_icon="🌸")
 st.title("🌸 Maki")
 
-# Oldingi xabarlarni ko'rsatish
+# Display chat history
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
         st.markdown(msg["content"])
 
-# Input
-if user_input := st.chat_input("Xabar yozing..."):
+# Handle user input
+if user_input := st.chat_input("Type a message..."):
     st.session_state.messages.append({"role": "user", "content": user_input})
     with st.chat_message("user"):
         st.markdown(user_input)

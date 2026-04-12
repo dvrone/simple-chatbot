@@ -3,6 +3,8 @@ from pathlib import Path
 
 
 class Memory:
+    """Handles persistent and in-session memory for the chatbot."""
+
     def __init__(self, db_path: str = "data/memory.db", max_history: int = 10):
         self.db_path = db_path
         self.max_history = max_history
@@ -11,6 +13,7 @@ class Memory:
         self._init_db()
 
     def _init_db(self):
+        """Initialize the SQLite database and create tables if not exist."""
         with sqlite3.connect(self.db_path) as conn:
             conn.execute(
                 """
@@ -23,6 +26,7 @@ class Memory:
             conn.commit()
 
     def remember(self, key: str, value: str):
+        """Store a key-value pair persistently in the database."""
         with sqlite3.connect(self.db_path) as conn:
             conn.execute(
                 "INSERT OR REPLACE INTO user_data (key, value) VALUES (?, ?)",
@@ -31,26 +35,30 @@ class Memory:
             conn.commit()
 
     def recall(self, key: str) -> str | None:
+        """Retrieve a stored value by key from the database."""
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.execute("SELECT value FROM user_data WHERE key = ?", (key,))
             row = cursor.fetchone()
             return row[0] if row else None
 
     def add(self, role: str, text: str):
+        """Add a message to the in-session conversation history."""
         self.history.append({"role": role, "text": text})
         if len(self.history) > self.max_history:
             self.history.pop(0)
 
     def get_context(self) -> str:
+        """Return the conversation history as a formatted string."""
         if not self.history:
             return ""
         context = []
         for msg in self.history:
-            prefix = "Foydalanuvchi" if msg["role"] == "user" else "Bot"
+            prefix = "User" if msg["role"] == "user" else "Maki"
             context.append(f"{prefix}: {msg['text']}")
         return "\n".join(context)
 
     def clear(self):
+        """Clear both in-session history and persistent database."""
         self.history = []
         with sqlite3.connect(self.db_path) as conn:
             conn.execute("DELETE FROM user_data")

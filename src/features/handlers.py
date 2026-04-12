@@ -9,23 +9,21 @@ from src.core.memory import Memory
 
 
 class PersonalityHandler:
+    """Handles Maki's personality and dynamic responses."""
+
     NAME = "Maki"
-    STYLE = "muloyim"
+    STYLE = "gentle"
 
     def __init__(self, memory: Memory):
         self.memory = memory
 
     def _get_name(self) -> str:
+        """Retrieve the user's name from memory."""
         name = self.memory.recall("name")
-        return f" {name}" if name else ""
-
-    GREETINGS = [
-        "Hi {name}! I'm Maki, how can I help you? 🌸",
-        "Hello {name}! Maki here 💜",
-        "Hey {name}! What can I do for you? 🌸",
-    ]
+        return name if name else ""
 
     def greet(self) -> str:
+        """Return a personalized greeting."""
         name = self._get_name()
         name_str = f" {name}" if name else ""
         options = [
@@ -35,13 +33,8 @@ class PersonalityHandler:
         ]
         return random.choice(options)
 
-    FAREWELLS = [
-        "Goodbye{name}! Take care 💜",
-        "See you later{name}! 🌸",
-        "Bye{name}! Stay safe 💜",
-    ]
-
     def farewell(self) -> str:
+        """Return a personalized farewell message."""
         name = self._get_name()
         name_str = f" {name}" if name else ""
         options = [
@@ -51,23 +44,33 @@ class PersonalityHandler:
         ]
         return random.choice(options)
 
-def unknown(self) -> str:
-    name = self._get_name()
-    name_str = f" {name}" if name else ""
-    options = [
-        f"I didn't get that{name_str}, could you rephrase? 🥺",
-        f"Sorry{name_str}, I don't know about that yet 💜",
-        f"Hmm{name_str}, can you be more specific? 🌸",
-    ]
-    return random.choice(options)
+    def unknown(self) -> str:
+        """Return a response for unrecognized input."""
+        name = self._get_name()
+        name_str = f" {name}" if name else ""
+        options = [
+            f"I didn't get that{name_str}, could you rephrase? 🥺",
+            f"Sorry{name_str}, I don't know about that yet 💜",
+            f"Hmm{name_str}, can you be more specific? 🌸",
+        ]
+        return random.choice(options)
 
 
 class TimeHandler:
+    """Handles time and date related responses."""
+
     def get_time(self) -> str:
+        """Return the current time in Uzbek format."""
         now = datetime.now()
         return f"Hozir soat {now.strftime('%H:%M')} 🕐"
 
+    def get_time_en(self) -> str:
+        """Return the current time in English format."""
+        now = datetime.now()
+        return f"It's {now.strftime('%H:%M')} 🕐"
+
     def get_date(self) -> str:
+        """Return the current date in Uzbek format."""
         now = datetime.now()
         days = [
             "Dushanba",
@@ -96,48 +99,56 @@ class TimeHandler:
         month_name = months[now.month - 1]
         return f"Bugun {day_name}, {now.day} {month_name} {now.year} 📅"
 
-    def get_time_en(self) -> str:
-        now = datetime.now()
-        return f"It's {now.strftime('%H:%M')} 🕐"
-
     def get_date_en(self) -> str:
+        """Return the current date in English format."""
         now = datetime.now()
         return f"Today is {now.strftime('%A, %B %d, %Y')} 📅"
 
 
 class MusicHandler:
+    """Handles music playback, listing, and stopping."""
+
     MUSIC_DIR = Path.home() / "Music"
     EXTENSIONS = (".mp3", ".wav", ".flac", ".ogg")
 
     def get_list(self) -> list:
+        """Return a list of music files from the music directory."""
         return [f for f in self.MUSIC_DIR.iterdir() if f.suffix in self.EXTENSIONS]
 
     def play(self, text: str) -> str:
+        """Play a song matching the query or a random one."""
         files = self.get_list()
         if not files:
-            return "Musiqa papkasida hech narsa topilmadi!"
+            return "No music found in the Music folder!"
 
+        # Stop any currently playing music
         os.system("pkill mpg123")
+
         stems = {f.stem.lower().replace("-", " ").replace("_", " "): f for f in files}
         match, score = process.extractOne(text.lower(), stems.keys())
         chosen = stems[match] if score >= 50 else random.choice(files)
         os.system(f"mpg123 '{chosen}' &")
-        return f"🎵 {chosen.stem} ijro etilmoqda!"
+        return f"🎵 Now playing: {chosen.stem}"
 
     def stop(self) -> str:
+        """Stop the currently playing music."""
         os.system("pkill mpg123")
-        return "🎵 Musiqa to'xtatildi!"
+        return "🎵 Music stopped!"
 
     def show_list(self) -> str:
+        """Return a formatted list of available songs."""
         files = self.get_list()
         if not files:
-            return "Musiqa papkasida hech narsa topilmadi!"
+            return "No music found in the Music folder!"
         names = "\n".join([f"🎵 {f.stem}" for f in files])
-        return f"Musiqa papkasidagi qo'shiqlar:\n{names}"
+        return f"Available songs:\n{names}"
 
 
 class VolumeHandler:
+    """Handles system volume control."""
+
     def _get_volume(self) -> str:
+        """Read the current master volume percentage."""
         result = os.popen("amixer get Master").read()
         for line in result.split("\n"):
             if "Front Left:" in line:
@@ -145,38 +156,50 @@ class VolumeHandler:
         return "?"
 
     def up(self) -> str:
+        """Increase the system volume by 10%."""
         os.system("amixer set Master 10%+")
-        return f"🔊 Ovoz balandligi: {self._get_volume()}"
+        return f"🔊 Volume: {self._get_volume()}"
 
     def down(self) -> str:
+        """Decrease the system volume by 10%."""
         os.system("amixer set Master 10%-")
-        return f"🔉 Ovoz balandligi: {self._get_volume()}"
+        return f"🔉 Volume: {self._get_volume()}"
 
 
 class MemoryHandler:
+    """Handles extracting and recalling user information."""
+
     def __init__(self, memory: Memory):
         self.memory = memory
 
     def extract(self, text: str):
+        """Extract and store user information from text."""
         text_lower = text.lower()
 
-        # Ism
-        for keyword in ["ismim ", "mening ismim ", "meni chaqir "]:
+        # Extract and store user's name
+        for keyword in ["my name is ", "call me ", "i am "]:
             if keyword in text_lower:
                 parts = text_lower.split(keyword)
                 if len(parts) > 1:
                     name = parts[1].strip().split()[0].capitalize()
-                    if name and name.lower() not in ["nima", "kim", "qanday"]:
+                    if name and name.lower() not in [
+                        "what",
+                        "who",
+                        "how",
+                        "nima",
+                        "kim",
+                        "qanday",
+                    ]:
                         self.memory.remember("name", name)
 
-        # Yosh
-        if "yoshim" in text_lower and "?" not in text_lower:
-            for word in text_lower.split():
-                cleaned = word.strip("da,. ")
-                if cleaned.isdigit():
-                    self.memory.remember("age", cleaned)
+        # Extract and store user's age
+        if "i am" in text_lower and "years old" in text_lower:
+            words = text_lower.split()
+            for i, word in enumerate(words):
+                if word.isdigit():
+                    self.memory.remember("age", word)
 
-        # Shahar
+        # Extract and store user's city (Uzbek patterns)
         for keyword in ["da yashayman", "dan kelganman"]:
             if keyword in text_lower:
                 parts = text_lower.split(keyword)
@@ -191,24 +214,38 @@ class MemoryHandler:
                     if city:
                         self.memory.remember("city", city)
 
+        # Extract and store user's city (English patterns)
+        for keyword in ["i live in ", "i am from ", "i'm from "]:
+            if keyword in text_lower:
+                parts = text_lower.split(keyword)
+                if len(parts) > 1:
+                    city = parts[1].strip().split()[0].capitalize()
+                    if city:
+                        self.memory.remember("city", city)
+
     def recall_name(self) -> str:
+        """Return the user's stored name."""
         name = self.memory.recall("name")
         return (
-            f"Sizning ismingiz {name}!"
+            f"Your name is {name}!"
             if name
-            else "Ismingizni bilmayman, aytib bering!"
+            else "I don't know your name yet, please tell me!"
         )
 
     def recall_age(self) -> str:
+        """Return the user's stored age."""
         age = self.memory.recall("age")
         return (
-            f"Siz {age} yoshdasiz!" if age else "Yoshingizni bilmayman, aytib bering!"
+            f"You are {age} years old!"
+            if age
+            else "I don't know your age yet, please tell me!"
         )
 
     def recall_city(self) -> str:
+        """Return the user's stored city."""
         city = self.memory.recall("city")
         return (
-            f"Siz {city}da yashaysiz!"
+            f"You live in {city}!"
             if city
-            else "Shahringizni bilmayman, aytib bering!"
+            else "I don't know your city yet, please tell me!"
         )
