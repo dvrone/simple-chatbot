@@ -34,14 +34,32 @@ class ChatbotPredictor:
 
     def extract_user_data(self, text: str):
         text_lower = text.lower()
-        triggers = ["ismim ", "mening ismim ", "meni chaqir "]
-        for keyword in triggers:
+
+        # Ism
+        for keyword in ["ismim ", "mening ismim ", "meni chaqir "]:
             if keyword in text_lower:
                 parts = text_lower.split(keyword)
                 if len(parts) > 1:
                     name = parts[1].strip().split()[0].capitalize()
                     if name and name.lower() not in ["nima", "kim", "qanday"]:
                         self.memory.remember("name", name)
+
+        # Yosh
+        if "yoshim" in text_lower:
+            words = text_lower.split()
+            for word in words:
+                cleaned = word.strip("da,. ")
+                if cleaned.isdigit():
+                    self.memory.remember("age", cleaned)
+
+        # Shahar
+        for keyword in ["da yashayman", "dan kelganman", "shahrim "]:
+            if keyword in text_lower:
+                parts = text_lower.split(keyword)
+                if len(parts) > 0 and parts[0].strip():
+                    city = parts[0].strip().split()[-1].capitalize()
+                    if city:
+                        self.memory.remember("city", city)
 
     def get_current_time(self) -> str:
         now = datetime.now()
@@ -142,6 +160,26 @@ class ChatbotPredictor:
             if name:
                 return f"Sizning ismingiz {name}!"
             return "Ismingizni bilmayman, aytib bering!"
+
+        # Yosh so'rash
+        if (
+            any(w in text_lower for w in ["yoshim necha", "men necha yoshda", "yoshim"])
+            and "?" in text
+        ):
+            age = self.memory.recall("age")
+            if age:
+                return f"Siz {age} yoshdasiz!"
+            return "Yoshingizni bilmayman, aytib bering!"
+
+        # Shahar so'rash
+        if any(
+            w in text_lower
+            for w in ["qayerdanman", "shahrim qayer", "qayerda yashayman"]
+        ):
+            city = self.memory.recall("city")
+            if city:
+                return f"Siz {city} da yashaysiz!"
+            return "Shahringizni bilmayman, aytib bering!"
 
         # Ism saqlash
         self.extract_user_data(text)
