@@ -5,10 +5,11 @@ from datetime import datetime
 
 from thefuzz import process
 
-from src.handlers import (MemoryHandler, MusicHandler, PersonalityHandler,
-                          TimeHandler, VolumeHandler)
-from src.memory import Memory
-from src.utils import preprocess
+from src.core.memory import Memory
+from src.core.utils import preprocess
+from src.features.handlers import (MemoryHandler, MusicHandler,
+                                   PersonalityHandler, TimeHandler,
+                                   VolumeHandler)
 
 
 class ChatbotPredictor:
@@ -189,6 +190,10 @@ class ChatbotPredictor:
             "hate": lambda: random.choice(
                 ["I'm sorry to hear that 🥺", "I'll try to do better 💜"]
             ),
+            "change_volume": lambda: self.volume.up() if any(w in text_lower for w in ["increase", "up", "louder", "raise"]) else self.volume.down(),
+"next_song": lambda: self.music.play(text),
+"what_song": lambda: self.music.show_list(),
+"user_name": lambda: self.mem_handler.recall_name(),
         }
 
         if tag in action_map:

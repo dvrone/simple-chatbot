@@ -5,7 +5,7 @@ from pathlib import Path
 
 from thefuzz import process
 
-from src.memory import Memory
+from src.core.memory import Memory
 
 
 class PersonalityHandler:
@@ -19,32 +19,47 @@ class PersonalityHandler:
         name = self.memory.recall("name")
         return f" {name}" if name else ""
 
+    GREETINGS = [
+        "Hi {name}! I'm Maki, how can I help you? 🌸",
+        "Hello {name}! Maki here 💜",
+        "Hey {name}! What can I do for you? 🌸",
+    ]
+
     def greet(self) -> str:
         name = self._get_name()
+        name_str = f" {name}" if name else ""
         options = [
-            f"Salom{name}! Men Makiman, qanday yordam bera olaman? 🌸",
-            f"Assalomu alaykum{name}! Maki shu yerda 💜",
-            f"Xush kelibsiz{name}! 🌸",
+            f"Hi{name_str}! I'm Maki, how can I help you? 🌸",
+            f"Hello{name_str}! Maki here 💜",
+            f"Hey{name_str}! What can I do for you? 🌸",
         ]
         return random.choice(options)
+
+    FAREWELLS = [
+        "Goodbye{name}! Take care 💜",
+        "See you later{name}! 🌸",
+        "Bye{name}! Stay safe 💜",
+    ]
 
     def farewell(self) -> str:
         name = self._get_name()
+        name_str = f" {name}" if name else ""
         options = [
-            f"Xayr{name}! O'zingizni ezing 💜",
-            f"Ko'rishguncha{name}! Sog' bo'ling 🌸",
-            f"Ehtiyot bo'ling{name}! 💜",
+            f"Goodbye{name_str}! Take care 💜",
+            f"See you later{name_str}! 🌸",
+            f"Bye{name_str}! Stay safe 💜",
         ]
         return random.choice(options)
 
-    def unknown(self) -> str:
-        name = self._get_name()
-        options = [
-            f"Tushunmadim{name}, qaytadan aytib bering 🥺",
-            f"Kechirasiz{name}, bu haqda bilmayman 💜",
-            f"Hmm{name}, aniqroq aytsangiz? 🌸",
-        ]
-        return random.choice(options)
+def unknown(self) -> str:
+    name = self._get_name()
+    name_str = f" {name}" if name else ""
+    options = [
+        f"I didn't get that{name_str}, could you rephrase? 🥺",
+        f"Sorry{name_str}, I don't know about that yet 💜",
+        f"Hmm{name_str}, can you be more specific? 🌸",
+    ]
+    return random.choice(options)
 
 
 class TimeHandler:
