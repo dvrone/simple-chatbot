@@ -81,6 +81,14 @@ class TimeHandler:
         month_name = months[now.month - 1]
         return f"Bugun {day_name}, {now.day} {month_name} {now.year} 📅"
 
+    def get_time_en(self) -> str:
+        now = datetime.now()
+        return f"It's {now.strftime('%H:%M')} 🕐"
+
+    def get_date_en(self) -> str:
+        now = datetime.now()
+        return f"Today is {now.strftime('%A, %B %d, %Y')} 📅"
+
 
 class MusicHandler:
     MUSIC_DIR = Path.home() / "Music"

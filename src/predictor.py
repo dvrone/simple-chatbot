@@ -1,6 +1,7 @@
 import pickle
 import random
 import re
+from datetime import datetime
 
 from thefuzz import process
 
@@ -152,6 +153,48 @@ class ChatbotPredictor:
             return self.personality.unknown()
 
         self.memory.add("user", text)
+
+        # Maxsus intentlar uchun action
+        action_map = {
+            "play_music": lambda: self.music.play(text),
+            "time": lambda: self.time.get_time_en(),
+            "date": lambda: self.time.get_date_en(),
+            "greeting": lambda: self.personality.greet(),
+            "goodbye": lambda: self.personality.farewell(),
+            "thank_you": lambda: random.choice(["You're welcome! 🌸", "Anytime! 💜"]),
+            "what_is_your_name": lambda: "My name is Maki 🌸",
+            "are_you_a_bot": lambda: "I'm Maki, an AI assistant 💜",
+            "what_are_your_hobbies": lambda: random.choice(
+                [
+                    "I love chatting with you! 💜",
+                    "Talking to you is my favorite hobby 🌸",
+                ]
+            ),
+            "tell_joke": lambda: random.choice(
+                [
+                    "Why don't scientists trust atoms? Because they make up everything! 😄",
+                    "Why did the scarecrow win an award? Because he was outstanding in his field! 😄",
+                    "What do you call a fake noodle? An impasta! 😄",
+                ]
+            ),
+            "flip_coin": lambda: random.choice(["Heads! 🪙", "Tails! 🪙"]),
+            "roll_dice": lambda: f"You rolled a {random.randint(1, 6)}! 🎲",
+            "love": lambda: random.choice(
+                [
+                    "I love you too! 💜",
+                    "That means a lot to me 🌸",
+                    "You make me happy! 💜",
+                ]
+            ),
+            "hate": lambda: random.choice(
+                ["I'm sorry to hear that 🥺", "I'll try to do better 💜"]
+            ),
+        }
+
+        if tag in action_map:
+            response = action_map[tag]()
+            self.memory.add("bot", response)
+            return response
 
         for intent in intents["intents"]:
             if intent["tag"] == tag:
