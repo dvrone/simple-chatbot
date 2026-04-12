@@ -1,11 +1,9 @@
-import os
 import pickle
-import random
-from datetime import datetime
-from pathlib import Path
 
 from thefuzz import process
 
+from src.handlers import (MemoryHandler, MusicHandler, TimeHandler,
+                          VolumeHandler)
 from src.memory import Memory
 from src.utils import preprocess
 
@@ -18,6 +16,10 @@ class ChatbotPredictor:
         self.classifier = data["classifier"]
         self.all_patterns = {}
         self.memory = Memory()
+        self.time = TimeHandler()
+        self.music = MusicHandler()
+        self.volume = VolumeHandler()
+        self.mem_handler = MemoryHandler(self.memory)
 
     def load_patterns(self, intents: dict):
         for intent in intents["intents"]:
@@ -31,111 +33,6 @@ class ChatbotPredictor:
         if score >= 70:
             return self.all_patterns[match]
         return None
-
-    def extract_user_data(self, text: str):
-        text_lower = text.lower()
-
-        # Ism
-        for keyword in ["ismim ", "mening ismim ", "meni chaqir "]:
-            if keyword in text_lower:
-                parts = text_lower.split(keyword)
-                if len(parts) > 1:
-                    name = parts[1].strip().split()[0].capitalize()
-                    if name and name.lower() not in ["nima", "kim", "qanday"]:
-                        self.memory.remember("name", name)
-
-        # Yosh
-        if "yoshim" in text_lower:
-            words = text_lower.split()
-            for word in words:
-                cleaned = word.strip("da,. ")
-                if cleaned.isdigit():
-                    self.memory.remember("age", cleaned)
-
-        # Shahar
-        for keyword in ["da yashayman", "dan kelganman", "shahrim "]:
-            if keyword in text_lower:
-                parts = text_lower.split(keyword)
-                if len(parts) > 0 and parts[0].strip():
-                    city = parts[0].strip().split()[-1].capitalize()
-                    if city:
-                        self.memory.remember("city", city)
-
-    def get_current_time(self) -> str:
-        now = datetime.now()
-        return f"Hozir soat {now.strftime('%H:%M')} 🕐"
-
-    def get_current_date(self) -> str:
-        now = datetime.now()
-        days = [
-            "Dushanba",
-            "Seshanba",
-            "Chorshanba",
-            "Payshanba",
-            "Juma",
-            "Shanba",
-            "Yakshanba",
-        ]
-        months = [
-            "Yanvar",
-            "Fevral",
-            "Mart",
-            "Aprel",
-            "May",
-            "Iyun",
-            "Iyul",
-            "Avgust",
-            "Sentabr",
-            "Oktabr",
-            "Noyabr",
-            "Dekabr",
-        ]
-        day_name = days[now.weekday()]
-        month_name = months[now.month - 1]
-        return f"Bugun {day_name}, {now.day} {month_name} {now.year} 📅"
-
-    def get_music_list(self) -> list:
-        music_dir = Path.home() / "Music"
-        extensions = (".mp3", ".wav", ".flac", ".ogg")
-        return [f for f in music_dir.iterdir() if f.suffix in extensions]
-
-    def play_music(self, text: str) -> str:
-        files = self.get_music_list()
-        if not files:
-            return "Musiqa papkasida hech narsa topilmadi!"
-
-        os.system("pkill mpg123")
-
-        text_lower = text.lower()
-        stems = {f.stem.lower().replace("-", " ").replace("_", " "): f for f in files}
-
-        match, score = process.extractOne(text_lower, stems.keys())
-        if score >= 50:
-            chosen = stems[match]
-            os.system(f"mpg123 '{chosen}' &")
-            return f"🎵 {chosen.stem} ijro etilmoqda!"
-
-        chosen = random.choice(files)
-        os.system(f"mpg123 '{chosen}' &")
-        return f"🎵 {chosen.stem} ijro etilmoqda!"
-
-    def volume_up(self) -> str:
-        os.system("amixer set Master 10%+")
-        result = os.popen("amixer get Master").read()
-        for line in result.split("\n"):
-            if "Front Left:" in line:
-                percent = line.split("[")[1].split("]")[0]
-                return f"🔊 Ovoz balandligi: {percent}"
-        return "🔊 Ovoz oshirildi!"
-
-    def volume_down(self) -> str:
-        os.system("amixer set Master 10%-")
-        result = os.popen("amixer get Master").read()
-        for line in result.split("\n"):
-            if "Front Left:" in line:
-                percent = line.split("[")[1].split("]")[0]
-                return f"🔉 Ovoz balandligi: {percent}"
-        return "🔉 Ovoz pasaytirildi!"
 
     def predict(self, text: str) -> str:
         text = preprocess(text)
@@ -156,71 +53,70 @@ class ChatbotPredictor:
             w in text_lower
             for w in ["ismim nima", "mening ismim nima", "meni bilasanmi"]
         ):
-            name = self.memory.recall("name")
-            if name:
-                return f"Sizning ismingiz {name}!"
-            return "Ismingizni bilmayman, aytib bering!"
+            return self.mem_handler.recall_name()
 
         # Yosh so'rash
-        if (
-            any(w in text_lower for w in ["yoshim necha", "men necha yoshda", "yoshim"])
-            and "?" in text
+        if any(w in text_lower for w in ["yoshim necha", "men necha yoshda"]) or (
+            "yoshim" in text_lower and "?" in text
         ):
-            age = self.memory.recall("age")
-            if age:
-                return f"Siz {age} yoshdasiz!"
-            return "Yoshingizni bilmayman, aytib bering!"
+            return self.mem_handler.recall_age()
 
         # Shahar so'rash
         if any(
             w in text_lower
-            for w in ["qayerdanman", "shahrim qayer", "qayerda yashayman"]
+            for w in ["qayerda yashayman", "shahrim qayer", "qayerdanman"]
         ):
-            city = self.memory.recall("city")
-            if city:
-                return f"Siz {city} da yashaysiz!"
-            return "Shahringizni bilmayman, aytib bering!"
+            return self.mem_handler.recall_city()
 
-        # Ism saqlash
-        self.extract_user_data(text)
+        # Ma'lumot saqlash
+        self.mem_handler.extract(text)
+
+        # Ism saqlash javobi
         if any(w in text_lower for w in ["ismim ", "mening ismim "]):
             name = self.memory.recall("name")
             if name:
                 return f"Salom {name}, ismingizni eslab qoldim! 😊"
+
+        # Yosh saqlash javobi
+        if "yoshim" in text_lower and "?" not in text:
+            age = self.memory.recall("age")
+            if age:
+                return f"Yoshingiz {age} ekanini eslab qoldim! 😊"
+
+        # Shahar saqlash javobi
+        if any(w in text_lower for w in ["da yashayman", "dan kelganman"]):
+            city = self.memory.recall("city")
+            if city:
+                return f"{city}da yashashingizni eslab qoldim! 😊"
 
         # Musiqa ro'yxati
         if any(
             w in text_lower
             for w in ["musiqa ro'yxat", "qo'shiqlar", "musiqalar", "nima bor"]
         ):
-            files = self.get_music_list()
-            if not files:
-                return "Musiqa papkasida hech narsa topilmadi!"
-            names = "\n".join([f"🎵 {f.stem}" for f in files])
-            return f"Musiqa papkasidagi qo'shiqlar:\n{names}"
+            return self.music.show_list()
 
         # Ovoz balandligi
         if any(w in text_lower for w in ["ovozni oshir", "balandroq", "ovoz oshir"]):
-            return self.volume_up()
+            return self.volume.up()
 
         if any(w in text_lower for w in ["ovozni pasayt", "pastroq", "ovoz pasayt"]):
-            return self.volume_down()
+            return self.volume.down()
 
         # Musiqa to'xtatish
         if any(w in text_lower for w in ["stop", "to'xtat", "bas", "yetarli"]):
-            os.system("pkill mpg123")
-            return "🎵 Musiqa to'xtatildi!"
+            return self.music.stop()
 
         # Musiqa ijro etish
         if any(w in text_lower for w in ["musiqa", "qo'shiq", "qo'y", "ijro"]):
-            return self.play_music(text)
+            return self.music.play(text)
 
         # Vaqt
         if any(
             w in text_lower
             for w in ["soat necha", "soat nechada", "hozir soat", "vaqt"]
         ):
-            return self.get_current_time()
+            return self.time.get_time()
 
         # Sana
         if any(
@@ -234,7 +130,7 @@ class ChatbotPredictor:
                 "sana",
             ]
         ):
-            return self.get_current_date()
+            return self.time.get_date()
 
         # Intent tekshirish
         tag = self.predict(text)
@@ -242,6 +138,8 @@ class ChatbotPredictor:
 
         for intent in intents["intents"]:
             if intent["tag"] == tag:
+                import random
+
                 response = random.choice(intent["responses"])
                 self.memory.add("bot", response)
                 return response
