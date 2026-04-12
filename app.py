@@ -42,7 +42,11 @@ if user_input := st.chat_input("Type a message..."):
     with st.chat_message("user"):
         st.markdown(user_input)
 
+    # Add to memory before getting response
+    st.session_state.predictor.memory.add("user", user_input)
     response = st.session_state.predictor.get_response(user_input, intents)
+    st.session_state.predictor.memory.add("bot", response)
+
     st.session_state.messages.append({"role": "assistant", "content": response})
     with st.chat_message("assistant"):
         st.markdown(response)

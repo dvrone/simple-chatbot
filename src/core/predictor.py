@@ -55,6 +55,20 @@ class ChatbotPredictor:
             return None
         return self.classifier.predict(embedding)[0]
 
+    def _get_last_bot_message(self) -> str | None:
+        """Return the last message sent by the bot."""
+        for msg in reversed(self.memory.history):
+            if msg["role"] == "bot":
+                return msg["text"]
+        return None
+
+    def _get_last_user_message(self) -> str | None:
+        """Return the second to last message sent by the user."""
+        user_messages = [m for m in self.memory.history if m["role"] == "user"]
+        if len(user_messages) >= 2:
+            return user_messages[-2]["text"]
+        return None
+
     def get_response(self, text: str, intents: dict) -> str:
         """Generate a response for the given user input."""
         if not self.all_patterns:
@@ -62,13 +76,46 @@ class ChatbotPredictor:
 
         text_lower = text.lower()
 
-        # Handle greetings
-        if re.search(r"\b(hello|hi|hey|howdy|greetings)\b", text_lower):
+        # Handle greetings - strict word boundary
+        if re.search(r"\b(hello|hi|hey|howdy|greetings)\b", text_lower) and not any(
+            w in text_lower
+            for w in ["while", "their", "like", "this", "think", "within"]
+        ):
             return self.personality.greet()
 
         # Handle farewells
         if re.search(r"\b(bye|goodbye|see you|take care|later)\b", text_lower):
             return self.personality.farewell()
+
+        # Handle repeat request
+        if any(w in text_lower for w in ["what did you say", "repeat", "say again"]):
+            last_bot = self._get_last_bot_message()
+            if last_bot:
+                return f"I said: {last_bot} 🌸"
+            return "I haven't said anything yet! 💜"
+
+        # Handle context-aware follow-up questions
+        last_bot = self._get_last_bot_message()
+        last_user = self._get_last_user_message()
+
+        if last_bot and any(
+            w in text_lower for w in ["do you like it", "is it good", "how is it"]
+        ):
+            if "now playing" in last_bot.lower():
+                song = last_bot.split(":")[-1].strip()
+                return f"I love {song}! Great choice 🌸"
+
+        if last_user and any(w in text_lower for w in ["why", "why so", "why not"]):
+            mood = self.mem_handler.detect_mood(last_user)
+            if mood:
+                return (
+                    f"Because you said you're feeling {mood} 🥺 I just want to help 💜"
+                )
+
+        if last_bot and any(
+            w in text_lower for w in ["tell me more", "more", "continue"]
+        ):
+            return f"I said: '{last_bot}' 💜 Want to know more? 🌸"
 
         # Handle name query
         if any(
@@ -91,6 +138,13 @@ class ChatbotPredictor:
         ):
             return self.mem_handler.recall_city()
 
+        # Handle mood query
+        if any(
+            w in text_lower
+            for w in ["how am i feeling", "what is my mood", "my last mood"]
+        ):
+            return self.mem_handler.recall_mood_response()
+
         # Extract and store user information
         self.mem_handler.extract(text)
 
@@ -98,13 +152,6 @@ class ChatbotPredictor:
         mood_response = self.mem_handler.handle_mood(text)
         if mood_response:
             return mood_response
-
-        # Handle mood query
-        if any(
-            w in text_lower
-            for w in ["how am i feeling", "what is my mood", "my last mood"]
-        ):
-            return self.mem_handler.recall_mood_response()
 
         # Respond to name introduction
         if any(w in text_lower for w in ["my name is ", "call me "]):
@@ -198,8 +245,6 @@ class ChatbotPredictor:
         if tag is None:
             return self.personality.unknown()
 
-        self.memory.add("user", text)
-
         # Map intents to specific actions
         action_map = {
             "play_music": lambda: self.music.play(text),
@@ -210,7 +255,7 @@ class ChatbotPredictor:
             "thank_you": lambda: random.choice(
                 ["You're welcome! 🌸", "Anytime! 💜", "Happy to help! 🌸"]
             ),
-            "what_is_your_name": lambda: f"My name is Maki 🌸",
+            "what_is_your_name": lambda: "My name is Maki 🌸",
             "are_you_a_bot": lambda: "I'm Maki, an AI assistant 💜",
             "what_are_your_hobbies": lambda: random.choice(
                 [
@@ -261,14 +306,12 @@ class ChatbotPredictor:
 
         if tag in action_map:
             response = action_map[tag]()
-            self.memory.add("bot", response)
             return response
 
         # Fall back to intent responses
         for intent in intents["intents"]:
             if intent["tag"] == tag:
                 response = random.choice(intent["responses"])
-                self.memory.add("bot", response)
                 return response
 
         return self.personality.unknown()
