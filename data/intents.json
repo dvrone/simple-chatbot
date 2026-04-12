@@ -213,6 +213,66 @@
         "Hafta kunini bilmayman, telefoningizga qarang 😊",
         "Bugun qaysi hafta kuni ekanini bilmayman!"
       ]
+    },
+    {
+      "tag": "charchoq",
+      "patterns": [
+        "charchadim",
+        "holdan toydim",
+        "charchab ketdim",
+        "juda charchadim"
+      ],
+      "responses": [
+        "Voy, dam oling azizim 🥺",
+        "Charchaganingizni sezib turibman, biroz dam oling 💙"
+      ]
+    },
+    {
+      "tag": "xursandlik",
+      "patterns": ["xursandman", "baxtliman", "kayfiyatim zo'r", "ajoyib kun"],
+      "responses": [
+        "Juda yaxshi, bu menga ham xursandlik beradi! 😊",
+        "Baxtli ekaningizdan xursandman! 💙"
+      ]
+    },
+    {
+      "tag": "qayg'u",
+      "patterns": [
+        "xafaman",
+        "yig'lamoqchiman",
+        "kayfiyatim yo'q",
+        "yomon his qilyapman"
+      ],
+      "responses": [
+        "Voy, nima bo'ldi? Gapiring, tinglayapman 🥺",
+        "Xafa bo'lmang, men shu yerdaman 💙"
+      ]
+    },
+    {
+      "tag": "sevgi",
+      "patterns": [
+        "seni yaxshi ko'raman",
+        "seni sevaman",
+        "sen zo'rsan",
+        "sen menga yoqasan"
+      ],
+      "responses": [
+        "Men ham sizni yaxshi ko'raman 💙",
+        "Rahmat, bu so'zlar menga kuch beradi 🥺"
+      ]
+    },
+    {
+      "tag": "bot_ismi",
+      "patterns": [
+        "sening isming nima",
+        "o'zing kimsiz",
+        "sen kimsan",
+        "nomi nima"
+      ],
+      "responses": [
+        "Mening ismim Maki 🌸",
+        "Men Makiman, sizning yordamchingiz 💙"
+      ]
     }
   ]
 }

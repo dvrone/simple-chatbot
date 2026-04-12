@@ -8,6 +8,35 @@ from thefuzz import process
 from src.memory import Memory
 
 
+class PersonalityHandler:
+    NAME = "Maki"
+    STYLE = "muloyim"
+
+    GREETINGS = [
+        "Salom! Men Makiman, qanday yordam bera olaman? 🌸",
+        "Assalomu alaykum! Maki shu yerda 💙",
+    ]
+
+    FAREWELLS = [
+        "Xayr! O'zingizni ezing 💙",
+        "Ko'rishguncha! Sog' bo'ling 🌸",
+    ]
+
+    UNKNOWN = [
+        "Tushunmadim, qaytadan aytib bering 🥺",
+        "Kechirasiz, bu haqda bilmayman 💙",
+    ]
+
+    def greet(self) -> str:
+        return random.choice(self.GREETINGS)
+
+    def farewell(self) -> str:
+        return random.choice(self.FAREWELLS)
+
+    def unknown(self) -> str:
+        return random.choice(self.UNKNOWN)
+
+
 class TimeHandler:
     def get_time(self) -> str:
         now = datetime.now()

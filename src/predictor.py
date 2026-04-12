@@ -1,9 +1,11 @@
 import pickle
+import random
+import re
 
 from thefuzz import process
 
-from src.handlers import (MemoryHandler, MusicHandler, TimeHandler,
-                          VolumeHandler)
+from src.handlers import (MemoryHandler, MusicHandler, PersonalityHandler,
+                          TimeHandler, VolumeHandler)
 from src.memory import Memory
 from src.utils import preprocess
 
@@ -20,6 +22,7 @@ class ChatbotPredictor:
         self.music = MusicHandler()
         self.volume = VolumeHandler()
         self.mem_handler = MemoryHandler(self.memory)
+        self.personality = PersonalityHandler()
 
     def load_patterns(self, intents: dict):
         for intent in intents["intents"]:
@@ -48,6 +51,14 @@ class ChatbotPredictor:
 
         text_lower = text.lower()
 
+        # Salom
+        if re.search(r"\b(salom|assalomu alaykum|hayy)\b", text_lower):
+            return self.personality.greet()
+
+        # Xayr
+        if re.search(r"\b(xayr|hayr|ko'rishguncha|bye)\b", text_lower):
+            return self.personality.farewell()
+
         # Ism so'rash
         if any(
             w in text_lower
@@ -75,19 +86,19 @@ class ChatbotPredictor:
         if any(w in text_lower for w in ["ismim ", "mening ismim "]):
             name = self.memory.recall("name")
             if name:
-                return f"Salom {name}, ismingizni eslab qoldim! 😊"
+                return f"Salom {name}, ismingizni eslab qoldim! 🌸"
 
         # Yosh saqlash javobi
         if "yoshim" in text_lower and "?" not in text:
             age = self.memory.recall("age")
             if age:
-                return f"Yoshingiz {age} ekanini eslab qoldim! 😊"
+                return f"Yoshingiz {age} ekanini eslab qoldim! 💙"
 
         # Shahar saqlash javobi
         if any(w in text_lower for w in ["da yashayman", "dan kelganman"]):
             city = self.memory.recall("city")
             if city:
-                return f"{city}da yashashingizni eslab qoldim! 😊"
+                return f"{city}da yashashingizni eslab qoldim! 🌸"
 
         # Musiqa ro'yxati
         if any(
@@ -138,10 +149,8 @@ class ChatbotPredictor:
 
         for intent in intents["intents"]:
             if intent["tag"] == tag:
-                import random
-
                 response = random.choice(intent["responses"])
                 self.memory.add("bot", response)
                 return response
 
-        return "Tushunmadim, qaytadan yozing."
+        return self.personality.unknown()
