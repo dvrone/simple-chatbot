@@ -28,8 +28,8 @@ if "messages" not in st.session_state:
     st.session_state.messages = []
 
 # Sahifa sozlamalari
-st.set_page_config(page_title="ChatBot", page_icon="🤖")
-st.title("🤖 ChatBot")
+st.set_page_config(page_title="Maki 💜", page_icon="🌸")
+st.title("🌸 Maki")
 
 # Oldingi xabarlarni ko'rsatish
 for msg in st.session_state.messages:
