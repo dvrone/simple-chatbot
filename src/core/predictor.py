@@ -94,6 +94,18 @@ class ChatbotPredictor:
         # Extract and store user information
         self.mem_handler.extract(text)
 
+        # Detect and handle mood
+        mood_response = self.mem_handler.handle_mood(text)
+        if mood_response:
+            return mood_response
+
+        # Handle mood query
+        if any(
+            w in text_lower
+            for w in ["how am i feeling", "what is my mood", "my last mood"]
+        ):
+            return self.mem_handler.recall_mood_response()
+
         # Respond to name introduction
         if any(w in text_lower for w in ["my name is ", "call me "]):
             name = self.memory.recall("name")

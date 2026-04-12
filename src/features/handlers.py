@@ -7,6 +7,43 @@ from thefuzz import process
 
 from src.core.memory import Memory
 
+# Mood keywords mapping
+MOOD_MAP = {
+    "happy": ["happy", "great", "amazing", "wonderful", "excited", "joyful", "good"],
+    "sad": ["sad", "unhappy", "depressed", "down", "miserable", "crying"],
+    "tired": ["tired", "exhausted", "sleepy", "drained", "worn out", "charchadim"],
+    "angry": ["angry", "frustrated", "annoyed", "mad", "furious"],
+    "anxious": ["anxious", "nervous", "worried", "stressed", "scared"],
+    "bored": ["bored", "boredom", "nothing to do", "unentertained"],
+}
+
+MOOD_RESPONSES = {
+    "happy": [
+        "That's wonderful to hear! 🌸 Your happiness makes me happy too 💜",
+        "Yay! I love when you're happy! 🌸",
+    ],
+    "sad": [
+        "I'm sorry you're feeling sad 🥺 I'm here for you 💜",
+        "It's okay to feel sad sometimes. I'm always here 🌸",
+    ],
+    "tired": [
+        "You should get some rest 🥺 Take care of yourself 💜",
+        "Don't forget to rest! You deserve it 🌸",
+    ],
+    "angry": [
+        "Take a deep breath 💜 It will be okay 🌸",
+        "I'm sorry you're frustrated 🥺 Want to talk about it? 💜",
+    ],
+    "anxious": [
+        "Everything will be okay 💜 I'm right here with you 🌸",
+        "Take it one step at a time 🥺 You've got this 💜",
+    ],
+    "bored": [
+        "Let me cheer you up! Want to hear a joke? 😄 💜",
+        "I'm here! Want to play a game or listen to music? 🌸",
+    ],
+}
+
 
 class PersonalityHandler:
     """Handles Maki's personality and dynamic responses."""
@@ -195,7 +232,7 @@ class MemoryHandler:
         # Extract and store user's age
         if "i am" in text_lower and "years old" in text_lower:
             words = text_lower.split()
-            for i, word in enumerate(words):
+            for word in words:
                 if word.isdigit():
                     self.memory.remember("age", word)
 
@@ -222,6 +259,34 @@ class MemoryHandler:
                     city = parts[1].strip().split()[0].capitalize()
                     if city:
                         self.memory.remember("city", city)
+
+    def detect_mood(self, text: str) -> str | None:
+        """Detect the user's mood from the input text."""
+        text_lower = text.lower()
+        for mood, keywords in MOOD_MAP.items():
+            if any(keyword in text_lower for keyword in keywords):
+                return mood
+        return None
+
+    def handle_mood(self, text: str) -> str | None:
+        """Detect, store, and respond to the user's mood."""
+        mood = self.detect_mood(text)
+        if mood:
+            self.memory.remember_mood(mood)
+            responses = MOOD_RESPONSES.get(mood, [])
+            if responses:
+                return random.choice(responses)
+        return None
+
+    def recall_mood_response(self) -> str:
+        """Return a response based on the last stored mood."""
+        mood = self.memory.recall_last_mood()
+        if not mood:
+            return "I don't know how you're feeling yet, tell me! 🌸"
+        responses = MOOD_RESPONSES.get(mood, [])
+        if responses:
+            return f"Last time you were feeling {mood}. {random.choice(responses)}"
+        return f"Last time you were feeling {mood} 💜"
 
     def recall_name(self) -> str:
         """Return the user's stored name."""
