@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+.git/
+.gitignore
+models/
+data/memory.db
+.streamlit/
+tests/
+*.md
+.pytest_cache/
