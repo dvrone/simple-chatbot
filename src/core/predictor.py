@@ -118,17 +118,11 @@ class ChatbotPredictor:
             return f"I said: '{last_bot}' 💜 Want to know more? 🌸"
 
         # Handle name query
-        if any(
-            w in text_lower
-            for w in ["what is my name", "do you know my name", "my name is what"]
-        ):
+        if any(w in text_lower for w in ["what is my name", "do you know my name"]):
             return self.mem_handler.recall_name()
 
         # Handle age query
-        if any(
-            w in text_lower
-            for w in ["how old am i", "what is my age", "my age is what"]
-        ):
+        if any(w in text_lower for w in ["how old am i", "what is my age"]):
             return self.mem_handler.recall_age()
 
         # Handle city query
@@ -144,6 +138,18 @@ class ChatbotPredictor:
             for w in ["how am i feeling", "what is my mood", "my last mood"]
         ):
             return self.mem_handler.recall_mood_response()
+
+        # Handle mood negation
+        if re.search(r"\b(not|don't|never)\b", text_lower) and any(
+            w in text_lower
+            for w in ["tired", "happy", "sad", "angry", "anxious", "bored"]
+        ):
+            return random.choice(
+                [
+                    "Oh, that's good to hear! 🌸",
+                    "Glad you're doing okay! 💜",
+                ]
+            )
 
         # Extract and store user information
         self.mem_handler.extract(text)
@@ -306,12 +312,12 @@ class ChatbotPredictor:
 
         if tag in action_map:
             response = action_map[tag]()
-            return response
+            return self.personality.add_follow_up(response)
 
         # Fall back to intent responses
         for intent in intents["intents"]:
             if intent["tag"] == tag:
                 response = random.choice(intent["responses"])
-                return response
+                return self.personality.add_follow_up(response)
 
         return self.personality.unknown()

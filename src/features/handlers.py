@@ -44,6 +44,17 @@ MOOD_RESPONSES = {
     ],
 }
 
+# Random follow-up phrases added occasionally to responses
+FOLLOW_UPS = [
+    "By the way, how are you doing? 💜",
+    "Hope you're having a great day! 🌸",
+    "Is there anything else I can help with? 💜",
+    "You're amazing, you know that? 🌸",
+    "I'm always here for you 💜",
+    "Don't forget to take care of yourself! 🌸",
+    "Sending you good vibes! 💜",
+]
+
 
 class PersonalityHandler:
     """Handles Maki's personality and dynamic responses."""
@@ -69,6 +80,14 @@ class PersonalityHandler:
             f"Hey{name_str}! What can I do for you? 🌸",
         ]
         return random.choice(options)
+
+    def add_follow_up(self, response: str) -> str:
+        """Occasionally append a random follow-up phrase to a response."""
+        # Add follow-up every 4 messages on average
+        if random.random() < 0.25:
+            follow_up = random.choice(FOLLOW_UPS)
+            return f"{response}\n\n_{follow_up}_"
+        return response
 
     def farewell(self) -> str:
         """Return a personalized farewell message."""
@@ -213,8 +232,8 @@ class MemoryHandler:
         """Extract and store user information from text."""
         text_lower = text.lower()
 
-        # Extract and store user's name
-        for keyword in ["my name is ", "call me ", "i am "]:
+        # Extract and store user's name - remove "i am" trigger
+        for keyword in ["my name is ", "call me "]:  # "i am " olib tashlandi
             if keyword in text_lower:
                 parts = text_lower.split(keyword)
                 if len(parts) > 1:
@@ -226,6 +245,17 @@ class MemoryHandler:
                         "nima",
                         "kim",
                         "qanday",
+                        "not",
+                        "very",
+                        "so",
+                        "really",
+                        "just",
+                        "tired",
+                        "happy",
+                        "sad",
+                        "angry",
+                        "anxious",
+                        "bored",
                     ]:
                         self.memory.remember("name", name)
 
@@ -270,6 +300,9 @@ class MemoryHandler:
 
     def handle_mood(self, text: str) -> str | None:
         """Detect, store, and respond to the user's mood."""
+        # Skip negations
+        if any(w in text.lower() for w in ["not ", "don't ", "doesn't ", "never "]):
+            return None
         mood = self.detect_mood(text)
         if mood:
             self.memory.remember_mood(mood)
