@@ -63,7 +63,7 @@ class Memory:
         """Retrieve the most recently stored mood."""
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.execute(
-                "SELECT mood FROM mood_history ORDER BY timestamp DESC LIMIT 1"
+                "SELECT mood FROM mood_history ORDER BY id DESC LIMIT 1"
             )
             row = cursor.fetchone()
             return row[0] if row else None
